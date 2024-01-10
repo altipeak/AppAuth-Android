@@ -38,6 +38,7 @@ import net.openid.appauth.AuthorizationService;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.AuthorizationServiceDiscovery;
 import net.openid.appauth.ClientAuthentication;
+import net.openid.appauth.ClientSecretBasic;
 import net.openid.appauth.EndSessionRequest;
 import net.openid.appauth.TokenRequest;
 import net.openid.appauth.TokenResponse;
@@ -92,13 +93,11 @@ public class TokenActivity extends AppCompatActivity {
             signOut();
             return;
         }
-
         mAuthService = new AuthorizationService(
                 this,
                 new AppAuthConfiguration.Builder()
                         .setConnectionBuilder(config.getConnectionBuilder())
                         .build());
-
         setContentView(R.layout.activity_token);
         displayLoading("Restoring state...");
 
@@ -114,25 +113,20 @@ public class TokenActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
         if (mExecutor.isShutdown()) {
             mExecutor = Executors.newSingleThreadExecutor();
         }
-
         if (mStateManager.getCurrent().isAuthorized()) {
             displayAuthorized();
             return;
         }
-
         // the stored AuthState is incomplete, so check if we are currently receiving the result of
         // the authorization flow from the browser.
         AuthorizationResponse response = AuthorizationResponse.fromIntent(getIntent());
         AuthorizationException ex = AuthorizationException.fromIntent(getIntent());
-
         if (response != null || ex != null) {
             mStateManager.updateAfterAuthorization(response, ex);
         }
-
         if (response != null && response.authorizationCode != null) {
             // authorization code exchange is required
             mStateManager.updateAfterAuthorization(response, ex);
@@ -280,22 +274,26 @@ public class TokenActivity extends AppCompatActivity {
 
     @MainThread
     private void performTokenRequest(
-            TokenRequest request,
-            AuthorizationService.TokenResponseCallback callback) {
+        TokenRequest request,
+        AuthorizationService.TokenResponseCallback callback) {
         ClientAuthentication clientAuthentication;
-        try {
-            clientAuthentication = mStateManager.getCurrent().getClientAuthentication();
-        } catch (ClientAuthentication.UnsupportedAuthenticationMethod ex) {
-            Log.d(TAG, "Token request cannot be made, client authentication for the token "
-                            + "endpoint could not be constructed (%s)", ex);
-            displayNotAuthorized("Client authentication method is unsupported");
-            return;
-        }
+        if (Configuration.getInstance(TokenActivity.this).getClientSecret() != null) {
+            clientAuthentication = new ClientSecretBasic(Configuration.getInstance(TokenActivity.this).getClientSecret());
 
+        } else {
+            try {
+                clientAuthentication = mStateManager.getCurrent().getClientAuthentication();
+            } catch (ClientAuthentication.UnsupportedAuthenticationMethod ex) {
+                Log.d(TAG, "Token request cannot be made, client authentication for the token "
+                    + "endpoint could not be constructed (%s)", ex);
+                displayNotAuthorized("Client authentication method is unsupported");
+                return;
+            }
+        }
         mAuthService.performTokenRequest(
-                request,
-                clientAuthentication,
-                callback);
+            request,
+            clientAuthentication,
+            callback);
     }
 
     @WorkerThread
