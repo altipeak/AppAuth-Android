@@ -1,12 +1,9 @@
 {
-  "client_id": "",
-  "redirect_uri": "net.openid.appauthdemo:/oauth2redirect",
-  "end_session_redirect_uri": "net.openid.appauthdemo:/oauth2redirect",
-  "authorization_scope": "openid email profile",
-  "discovery_uri": "",
-  "authorization_endpoint_uri": "",
-  "token_endpoint_uri": "",
-  "registration_endpoint_uri": "",
-  "user_info_endpoint_uri": "",
+  "client_id": "kbyuFDidLLm280LIwVFiazOqjO3ty8KH",
+  "client_secret": "60Op4HFM0I8ajz0WdiStAbziZ-VFQttXuxixHHs2R7r7-CW8GR79l-mmLqMhc-Sa",
+  "redirect_uri": "https://appauth.demo-app.io/oauth2redirect",
+  "end_session_redirect_uri": "https://appauth.demo-app.io/oauth2redirect",
+  "authorization_scope": "openid profile scope",
+  "discovery_uri": "https://sfs-2023.demo.safewalk.info/openid/.well-known/openid-configuration/",
   "https_required": true
 }
